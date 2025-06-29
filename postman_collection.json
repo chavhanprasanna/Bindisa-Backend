@@ -1,0 +1,210 @@
+{
+  "info": {
+    "_postman_id": "bindisa-backend-collection",
+    "name": "Bindisa Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Login (OTP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mobile\": \"9876543210\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Auth - OTP Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mobile\": \"9876543210\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/otp-verify", "host": ["{{baseUrl}}"], "path": ["auth", "otp-verify"] }
+      }
+    },
+    {
+      "name": "User - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone_number\": \"9876543210\",\n  \"name\": \"Test User\",\n  \"preferred_language\": \"en\",\n  \"user_type\": \"farmer\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+      }
+    },
+    {
+      "name": "User - List",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+      }
+    },
+    {
+      "name": "User - Get by ID",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/users/:id", "host": ["{{baseUrl}}"], "path": ["users", ":id"] }
+      }
+    },
+    {
+      "name": "User - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Name\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/users/:id", "host": ["{{baseUrl}}"], "path": ["users", ":id"] }
+      }
+    },
+    {
+      "name": "User - Delete",
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{baseUrl}}/users/:id", "host": ["{{baseUrl}}"], "path": ["users", ":id"] }
+      }
+    },
+    {
+      "name": "Soil Tests - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ph\": 7.1,\n  \"nitrogen\": 50,\n  \"phosphorus\": 30,\n  \"potassium\": 40,\n  \"moisture\": 15,\n  \"ec\": 0.8,\n  \"location\": \"Field A\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/soil-tests", "host": ["{{baseUrl}}"], "path": ["soil-tests"] }
+      }
+    },
+    {
+      "name": "Soil Tests - List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/soil-tests", "host": ["{{baseUrl}}"], "path": ["soil-tests"] }
+      }
+    },
+    {
+      "name": "Soil Tests - Latest",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/soil-tests/latest", "host": ["{{baseUrl}}"], "path": ["soil-tests", "latest"] }
+      }
+    },
+    {
+      "name": "Soil Tests - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ph\": 7.5\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/soil-tests/:testId", "host": ["{{baseUrl}}"], "path": ["soil-tests", ":testId"] }
+      }
+    },
+    {
+      "name": "Soil Tests - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/soil-tests/:testId", "host": ["{{baseUrl}}"], "path": ["soil-tests", ":testId"] }
+      }
+    },
+    {
+      "name": "Crops - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Wheat\",\n  \"type\": \"cereal\",\n  \"description\": \"A major cereal crop\",\n  \"season\": \"rabi\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/crops", "host": ["{{baseUrl}}"], "path": ["crops"] }
+      }
+    },
+    {
+      "name": "Crops - List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/crops", "host": ["{{baseUrl}}"], "path": ["crops"] }
+      }
+    },
+    {
+      "name": "Crops - Get by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/crops/:id", "host": ["{{baseUrl}}"], "path": ["crops", ":id"] }
+      }
+    },
+    {
+      "name": "Crops - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Maize\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/crops/:id", "host": ["{{baseUrl}}"], "path": ["crops", ":id"] }
+      }
+    },
+    {
+      "name": "Crops - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/crops/:id", "host": ["{{baseUrl}}"], "path": ["crops", ":id"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "jwt", "value": "" }
+  ]
+}

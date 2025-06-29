@@ -10,6 +10,8 @@ const soilTestSchema = new mongoose.Schema({
   ec: Number,
   test_time: Date,
   location: String
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('SoilTest', soilTestSchema); 

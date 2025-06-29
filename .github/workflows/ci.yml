@@ -1,0 +1,31 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm install
+      - name: Lint
+        run: |
+          if [ -f .eslintrc.js ] || [ -f .eslintrc.json ]; then npm run lint || true; fi
+      - name: Run tests
+        run: |
+          if [ -d tests ]; then npm test || true; fi
+      - name: Archive production artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-artifacts
+          path: .

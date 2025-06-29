@@ -1,18 +1,19 @@
-<<<<<<< HEAD
 # Bindisa Backend
 
 Backend for Bindisa farming management system built with Node.js, Express, and MongoDB.
 
 ## Features
 
-- User authentication (JWT)
-- Role-based access control
+- User authentication (JWT, expiring tokens)
+- Role-based access control (RBAC)
 - Secure API endpoints
 - Rate limiting and request validation
+- Input sanitization and escaping (prevents XSS/injection)
+- CORS restricted to trusted origins
+- Centralized error handling (no stack traces in production)
 - Environment-based configuration
-- Input sanitization
-- CORS enabled
-- API documentation (to be added)
+- Automated security tests (Jest)
+- API documentation (Swagger, coming soon)
 
 ## Prerequisites
 
@@ -87,12 +88,31 @@ TWILIO_PHONE_NUMBER=your_twilio_phone_number
 
 ## Security
 
-- Input validation using express-validator
-- Request sanitization
-- Rate limiting
-- Helmet for setting various HTTP headers
-- JWT for authentication
-- Environment variables for sensitive data
+- **Input validation & sanitization:** All endpoints strictly validate and sanitize input using express-validator. String fields are trimmed/escaped, numeric fields are type-checked.
+- **Rate limiting:** Prevents brute-force and DoS attacks.
+- **Helmet:** Sets secure HTTP headers.
+- **Mongo-sanitize & HPP:** Prevents NoSQL injection and HTTP parameter pollution.
+- **JWT authentication:** All sensitive endpoints require a valid, expiring JWT.
+- **RBAC:** Role-based access control enforced on all critical endpoints.
+- **CORS:** Only allows requests from trusted origins (set via `CORS_ORIGIN` env variable).
+- **Error handling:** Centralized, never leaks stack traces or sensitive info to clients.
+- **Payload size limiting:** Large payloads are rejected (max 1MB).
+- **Environment variables:** All secrets/config are loaded from `.env` (never hardcoded).
+
+### Automated Security Testing
+
+Run security tests with:
+```bash
+npm test
+```
+This will run Jest tests in `tests/security.test.js` to check:
+- JWT enforcement
+- Payload size limits
+- Input sanitization (XSS prevention)
+- RBAC enforcement
+- CORS restrictions
+
+**Recommended:** Add this to your CI/CD pipeline for every commit.
 
 ## Contributing
 
@@ -111,6 +131,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
 
 Project Link: [https://github.com/yourusername/bindisa-backend](https://github.com/yourusername/bindisa-backend)
-=======
-# Bindisa-Backend
->>>>>>> e7ab7b2984eeadd1d0ff967a9589936c00b5dca4

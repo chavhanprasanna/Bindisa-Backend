@@ -4,6 +4,7 @@ const authRoutes = require('./routes/auth.routes.js');
 const dashboardRoutes = require('./routes/dashboard.routes.js');
 const userRoutes = require('./routes/user.routes');
 const soilTestRoutes = require('./routes/soil_test.routes.js');
+const cropRoutes = require('./routes/crop.routes');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -17,7 +18,12 @@ const hpp = require('hpp');
 require('dotenv-safe').config();
 
 const app = express();
+app.disable('x-powered-by'); // Hide Express signature
 const PORT = process.env.PORT || 3000;
+
+// Limit payload size
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Security middleware
 app.use(helmet({
@@ -45,11 +51,15 @@ app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   xssFilter: true
 }));
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'],
+  credentials: true
+}));
 
 // Trust first proxy in production (needed for secure cookies / rate-limiter correct IP)
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
+  // TODO: Enforce HTTPS in production
 }
 
 // Logging middleware

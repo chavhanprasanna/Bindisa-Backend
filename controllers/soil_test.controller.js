@@ -1,19 +1,18 @@
 const SoilTest = require('../models/soil_test');
 const User = require('../models/user');
 
-exports.createSoilTest = async (req, res) => {
-  try {
-    const { ph, nitrogen, phosphorus, potassium, moisture, ec, location } = req.body;
-    
-    // Validate required fields
-    if (!ph || !nitrogen || !phosphorus || !potassium) {
-      return res.status(400).json({
-        success: false,
-        message: 'All soil parameters are required'
-      });
-    }
+const { body, validationResult } = require('express-validator');
 
-    // Create new soil test
+exports.createSoilTest = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const err = new Error('Validation failed');
+      err.status = 400;
+      err.details = errors.array();
+      return next(err);
+    }
+    const { ph, nitrogen, phosphorus, potassium, moisture, ec, location } = req.body;
     const soilTest = new SoilTest({
       user_id: req.user._id,
       ph,
@@ -25,26 +24,23 @@ exports.createSoilTest = async (req, res) => {
       location,
       test_time: new Date()
     });
-
     await soilTest.save();
-
     res.json({
       success: true,
       message: 'Soil test created successfully',
       data: soilTest
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
+    next(error);
   }
 };
 
 exports.getSoilTests = async (req, res) => {
   try {
     const { startDate, endDate, location } = req.query;
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
     const query = { user_id: req.user._id };
 
     // Add optional filters
@@ -52,13 +48,20 @@ exports.getSoilTests = async (req, res) => {
     if (endDate) query.test_time = { ...query.test_time, $lte: new Date(endDate) };
     if (location) query.location = location;
 
+    const total = await SoilTest.countDocuments(query);
     const soilTests = await SoilTest.find(query)
       .sort({ test_time: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .populate('user_id', 'name');
 
     res.json({
       success: true,
-      data: soilTests
+      data: soilTests,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit
     });
   } catch (error) {
     console.error(error);
@@ -118,5 +121,68 @@ exports.deleteSoilTest = async (req, res) => {
       success: false,
       message: 'Internal server error'
     });
+  }
+};
+
+// PUT /soil-tests/:testId
+exports.updateSoilTest = async (req, res, next) => {
+  await body('ph').optional().toFloat().run(req);
+  await body('nitrogen').optional().toFloat().run(req);
+  await body('phosphorus').optional().toFloat().run(req);
+  await body('potassium').optional().toFloat().run(req);
+  await body('moisture').optional().toFloat().run(req);
+  await body('ec').optional().toFloat().run(req);
+  await body('location').optional().trim().escape().run(req);
+  await body('test_time').optional().isISO8601().run(req);
+  try {
+    const { testId } = req.params;
+    const updateFields = req.body;
+    // Only allow update if the test belongs to the authenticated user
+    const soilTest = await SoilTest.findOneAndUpdate(
+      { _id: testId, user_id: req.user._id },
+      updateFields,
+      { new: true }
+    );
+    if (!soilTest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Soil test not found or not owned by user'
+      });
+    }
+    res.json({
+      success: true,
+      message: 'Soil test updated successfully',
+      data: soilTest
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// POST /soil-tests/:testId/recommendation
+exports.getRecommendation = async (req, res) => {
+  try {
+    const { testId } = req.params;
+    const soilTest = await SoilTest.findOne({ _id: testId, user_id: req.user._id });
+    if (!soilTest) {
+      return res.status(404).json({ success: false, message: 'Soil test not found or not owned by user' });
+    }
+    // Mock AI recommendation logic
+    const recommendation = {
+      suggested_crop: soilTest.nitrogen > 40 ? 'Wheat' : 'Rice',
+      fertilizer: soilTest.ph < 6.5 ? 'Lime' : 'Urea',
+      notes: 'This is a mock recommendation. Integrate with real AI for production.'
+    };
+    res.json({
+      success: true,
+      recommendation
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
