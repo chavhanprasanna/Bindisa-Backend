@@ -128,6 +128,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
+Prasanna Chavhan - prasannachavhan786@gmail.com
 
-Project Link: [https://github.com/yourusername/bindisa-backend](https://github.com/yourusername/bindisa-backend)
+Project Link: [https://github.com/chavhanprasanna/Bindisa-Backend](https://github.com/chavhanprasanna/Bindisa-Backend)
