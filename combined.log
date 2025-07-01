@@ -1,3 +1,0 @@
-{"level":"info","message":{"ip":"::1","method":"POST","path":"/auth/login","userAgent":"PostmanRuntime/7.40.0"},"timestamp":"2025-06-19T06:00:04.669Z"}
-{"level":"info","message":{"ip":"::1","method":"GET","path":"/dashboard/data","userAgent":"PostmanRuntime/7.40.0"},"timestamp":"2025-06-19T06:00:54.221Z"}
-{"level":"info","message":{"ip":"::1","method":"PUT","path":"/users/%7Bid%7D%0A","userAgent":"PostmanRuntime/7.40.0"},"timestamp":"2025-06-19T06:01:47.014Z"}
