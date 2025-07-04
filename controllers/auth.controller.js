@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const twilio = require('twilio');
 const jwt = require('jsonwebtoken');
-const User = require('./models/user.js');
+const User = require('../models/user.js');
 
 // Initialize Twilio only if real credentials are configured
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -48,6 +48,7 @@ exports.login = async (req, res) => {
     // Generate OTP
     const otp = generateOtp();
     user.otp_code = otp;
+    user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiry
     await user.save();
 
     if (twilioEnabled) {
@@ -91,6 +92,61 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.loginPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
+
+    // Clear any existing OTP
+    user.otp_code = null;
+    user.otp_expires_at = null;
+    await user.save();
+
+    // Generate JWT token
+    const token = user.generateAuthToken();
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      data: {
+        userId: user._id,
+        token: token,
+        user_type: user.user_type
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 exports.verifyOtp = async (req, res) => {
   try {
     const { mobile, otp } = req.body;
@@ -110,6 +166,14 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
+    // Check OTP expiry
+    if (!user.otp_code || user.otp_expires_at < new Date()) {
+      return res.status(401).json({
+        success: false,
+        message: "OTP has expired"
+      });
+    }
+
     if (user.otp_code !== otp) {
       return res.status(401).json({
         success: false,
@@ -119,6 +183,7 @@ exports.verifyOtp = async (req, res) => {
 
     // Clear OTP and mark user as verified
     user.otp_code = null;
+    user.otp_expires_at = null;
     user.is_verified = true;
     user.last_login = new Date();
     await user.save();

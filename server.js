@@ -1,44 +1,58 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+
 const authRoutes = require('./routes/auth.routes.js');
 const dashboardRoutes = require('./routes/dashboard.routes.js');
 const userRoutes = require('./routes/user.routes');
 const soilTestRoutes = require('./routes/soil_test.routes.js');
+
 const cropRoutes = require('./routes/crop.routes');
+const cropSuggestionRoutes = require('./routes/crop_suggestion.routes');
+const farmingPlanRoutes = require('./routes/farming_plan.routes');
+const demoRoutes = require('./routes/demo.routes');
+const npkRoutes = require('./routes/npk.routes');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const errorHandler = require('./middleware/error.middleware');
 const { loggingMiddleware } = require('./middleware/logging.middleware');
-const { validationMiddleware } = require('./middleware/validation.middleware');
-const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
-require('dotenv-safe').config();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./docs/swagger.js');
+require('dotenv').config();
 
 const app = express();
 app.disable('x-powered-by'); // Hide Express signature
-const PORT = process.env.PORT || 3000;
-
-// Health check endpoint for Render and uptime monitoring
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+const PORT = process.env.PORT || 3002;
 
 // Limit payload size
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'UP',
+    timestamp: new Date(),
+    uptime: process.uptime(),
+    memoryUsage: process.memoryUsage(),
+    mongoConnection: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// Swagger documentation
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://api.openweathermap.org'],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -78,16 +92,38 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Body parser middleware
-app.use(bodyParser.json());
+app.use(express.json());
 // Sanitize data against NoSQL injection
 app.use(mongoSanitize());
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bindisa')
-.then(() => console.log('MongoDB connected'))
-.catch((err) => console.error('MongoDB connection error:', err));
+// Connect to MongoDB with proper error handling
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bindisa';
+
+mongoose.connect(mongoURI, {
+
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  family: 4 // Use IPv4, skip trying IPv6
+})
+.then(() => {
+  console.log('MongoDB connected successfully');
+  // Initialize models after successful connection
+  require('./models/soil_test');
+  require('./models/crop_suggestion');
+  require('./models/farming_plan');
+  require('./models/user');
+  require('./models/state.model');
+  require('./models/district.model');
+  require('./models/crop.model');
+  require('./models/crop_requirement.model');
+  require('./models/fertilizer.model');
+})
+.catch((err) => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1); // Exit if MongoDB connection fails
+});
 
 // API Documentation
 app.get('/', (req, res) => {
@@ -137,17 +173,21 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Add validation middleware before routes
-app.use(validationMiddleware);
+
 
 // Add compression middleware
-app.use(compression());
+app.use(require('compression')());
 
 // Routes
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/users', userRoutes);
 app.use('/soil-tests', soilTestRoutes);
+app.use('/farming-plans', farmingPlanRoutes);
+app.use('/crop-suggestions', cropSuggestionRoutes);
+app.use('/crops', cropRoutes);
+app.use('/api/npk', npkRoutes);
+app.use('/demo', demoRoutes);
 
 // 404 handler - must be before error handler
 app.use((req, res) => {
@@ -173,15 +213,4 @@ process.on('SIGTERM', () => {
 // Store server instance
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'UP',
-    timestamp: new Date(),
-    uptime: process.uptime(),
-    memoryUsage: process.memoryUsage(),
-    mongoConnection: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
 });

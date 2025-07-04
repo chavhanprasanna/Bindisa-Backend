@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const soilTestController = require('../controllers/soil_test.controller');
-const authMiddleware = require('../middleware/auth.middleware');
+const { auth } = require('../middleware/auth.middleware');
 
 // Protected routes
 const { body } = require('express-validator');
@@ -15,11 +15,11 @@ const soilTestValidation = [
   body('location').notEmpty().withMessage('location is required')
 ];
 
-router.post('/', authMiddleware, soilTestValidation, soilTestController.createSoilTest);
-router.get('/', authMiddleware, soilTestController.getSoilTests);
-router.get('/latest', authMiddleware, soilTestController.getLatestSoilTest);
-router.delete('/:testId', authMiddleware, soilTestController.deleteSoilTest);
-router.put('/:testId', authMiddleware, soilTestController.updateSoilTest);
-router.post('/:testId/recommendation', authMiddleware, soilTestController.getRecommendation);
+router.post('/', auth, soilTestValidation, soilTestController.createSoilTest);
+router.get('/', auth, soilTestController.getSoilTests);
+router.get('/latest', auth, soilTestController.getLatestSoilTest);
+router.delete('/:testId', auth, soilTestController.deleteSoilTest);
+router.put('/:testId', auth, soilTestController.updateSoilTest);
+router.post('/:testId/recommendation', auth, soilTestController.getRecommendation);
 
 module.exports = router;

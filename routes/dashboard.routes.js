@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const dashboardController = require('../dashboard.controller.js');
-const authMiddleware = require('../middleware/auth.middleware');
+const dashboardController = require('../controllers/dashboard.controller.js');
+const { auth } = require('../middleware/auth.middleware');
 
-router.get('/data', authMiddleware, dashboardController.getDashboardData);
+// Apply auth middleware to all routes
+router.use(auth);
+
+// Dashboard routes
+router.get('/data', dashboardController.getDashboardData);
 
 module.exports = router;

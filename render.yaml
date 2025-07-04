@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: bindisa-backend
+    env: node
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /health
+    healthCheckTimeout: 10
+    healthCheckInterval: 10
+    healthCheckThreshold: 3
+    instanceCount: 1
+    instanceSize: free
+    environment: production
+    regions:
+      - mumbai

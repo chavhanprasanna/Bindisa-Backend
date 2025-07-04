@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const rbacMiddleware = require('../middleware/rbac.middleware');
+const { auth, authorize, ROLES } = require('../middleware/auth.middleware');
 
-router.post('/', authMiddleware, rbacMiddleware(['admin']), userController.createUser);
-router.get('/', authMiddleware, rbacMiddleware(['admin']), userController.getUsers);
-router.get('/:id', authMiddleware, rbacMiddleware(['admin']), userController.getUserById);
-router.put('/:id', authMiddleware, rbacMiddleware(['admin']), userController.updateUser);
-router.delete('/:id', authMiddleware, rbacMiddleware(['admin']), userController.deleteUser);
+router.post('/', auth, authorize(ROLES.ADMIN), userController.createUser);
+router.get('/', auth, authorize(ROLES.ADMIN), userController.getUsers);
+router.get('/:id', auth, authorize(ROLES.ADMIN), userController.getUserById);
+router.put('/:id', auth, authorize(ROLES.ADMIN), userController.updateUser);
+router.delete('/:id', auth, authorize(ROLES.ADMIN), userController.deleteUser);
 
 module.exports = router; 
